@@ -19,11 +19,20 @@ export default function App() {
   const [showApiPopup, setShowApiPopup] = useState(false);
   const [showAutomationPopup, setShowAutomationPopup] = useState(false);
   const [meId, setMeId] = useState(null);
+  const [automationChatIds, setAutomationChatIds] = useState([]);
   const selectedChatIdRef = useRef(selectedChatId);
 
   useEffect(() => {
     selectedChatIdRef.current = selectedChatId;
   }, [selectedChatId]);
+
+  const fetchAutomationChatIds = useCallback(async () => {
+    try {
+      const res = await fetch('/api/automations/chats');
+      const data = await res.json();
+      setAutomationChatIds(Array.isArray(data) ? data : []);
+    } catch {}
+  }, []);
 
   const fetchChats = useCallback(async () => {
     try {
@@ -33,7 +42,8 @@ export default function App() {
     } catch (err) {
       console.error('Failed to fetch chats:', err);
     }
-  }, []);
+    fetchAutomationChatIds();
+  }, [fetchAutomationChatIds]);
 
   useEffect(() => {
     fetch('/api/status')
@@ -203,6 +213,7 @@ export default function App() {
         chats={chats}
         selectedChatId={selectedChatId}
         onSelectChat={handleSelectChat}
+        automationChatIds={automationChatIds}
       />
       <div className="main">
         <ChatWindow
@@ -228,7 +239,7 @@ export default function App() {
           chatId={selectedChatId}
           chatName={selectedChat?.name}
           isGroup={selectedChat?.isGroup}
-          onClose={() => setShowAutomationPopup(false)}
+          onClose={() => { setShowAutomationPopup(false); fetchAutomationChatIds(); }}
         />
       )}
     </div>

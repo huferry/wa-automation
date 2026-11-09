@@ -131,6 +131,12 @@ router.post('/chats/:chatId/messages', async (req, res) => {
   }
 });
 
+// Automation chat IDs (which chats have automations)
+router.get('/automations/chats', (req, res) => {
+  const all = automations.getAllAutomations();
+  res.json(Object.keys(all).filter((k) => all[k].length > 0));
+});
+
 // Automations CRUD
 router.get('/chats/:chatId/automations', (req, res) => {
   res.json(automations.getAutomations(req.params.chatId));

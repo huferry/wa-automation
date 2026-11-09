@@ -55,3 +55,13 @@ The automation should only be apply to the individual direct/group.
 The 'Thumbs Up' automation will give thumbs-up reaction on each message, from the chosen member. When the chosen member is 'all' then it will give reaction to all messages in the group or direct chat.
 
 Save the automation for now in a json file.
+
+### Add 1
+In the chat list both direct and group, when
+a chat has one or more automation make the 
+user icon circled with purple border.
+That's the green circle icon with the member's
+or group's initial.
+
+### Add 2
+Sort direct message or group, in the list, always on top.

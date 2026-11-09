@@ -149,6 +149,10 @@ body {
   object-fit: cover;
 }
 
+.avatar-automated {
+  border: 2.5px solid #9b59b6;
+}
+
 .chat-info {
   flex: 1;
   min-width: 0;

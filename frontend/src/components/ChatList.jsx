@@ -41,12 +41,16 @@ function lastMessageText(chat) {
   return prefix + messagePreview(chat.lastMessage);
 }
 
-export default function ChatList({ chats, selectedChatId, onSelectChat }) {
+export default function ChatList({ chats, selectedChatId, onSelectChat, automationChatIds }) {
   const [filter, setFilter] = useState('direct');
 
-  const filtered = chats.filter((chat) =>
-    filter === 'group' ? chat.isGroup : !chat.isGroup
-  );
+  const filtered = chats
+    .filter((chat) => (filter === 'group' ? chat.isGroup : !chat.isGroup))
+    .sort((a, b) => {
+      const aAuto = automationChatIds?.includes(a.id) ? 1 : 0;
+      const bAuto = automationChatIds?.includes(b.id) ? 1 : 0;
+      return bAuto - aAuto;
+    });
 
   return (
     <div className="chat-list">
@@ -74,9 +78,9 @@ export default function ChatList({ chats, selectedChatId, onSelectChat }) {
             onClick={() => onSelectChat(chat.id)}
           >
             {chat.profilePicUrl ? (
-              <img className="chat-avatar-img" src={chat.profilePicUrl} alt="" />
+              <img className={`chat-avatar-img${automationChatIds?.includes(chat.id) ? ' avatar-automated' : ''}`} src={chat.profilePicUrl} alt="" />
             ) : (
-              <div className="chat-avatar">
+              <div className={`chat-avatar${automationChatIds?.includes(chat.id) ? ' avatar-automated' : ''}`}>
                 {chat.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
             )}
