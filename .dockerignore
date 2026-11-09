@@ -1,0 +1,8 @@
+node_modules
+backend/node_modules
+frontend/node_modules
+backend/.wwebjs_auth
+backend/.wwebjs_cache
+backend/data
+.git
+.claude
