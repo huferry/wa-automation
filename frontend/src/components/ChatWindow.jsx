@@ -32,7 +32,7 @@ function messageBody(msg) {
   return msg.body;
 }
 
-export default function ChatWindow({ messages, chatName, isGroup, loading }) {
+export default function ChatWindow({ messages, chatName, isGroup, loading, onShowApi }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -51,6 +51,12 @@ export default function ChatWindow({ messages, chatName, isGroup, loading }) {
     <div className="chat-window">
       <div className="chat-window-header">
         <h3>{chatName}</h3>
+        <button className="api-icon-btn" onClick={onShowApi} title="Send API">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13" />
+            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+          </svg>
+        </button>
       </div>
       <div className="chat-messages">
         {loading && <div className="spinner" />}

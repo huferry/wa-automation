@@ -4,6 +4,7 @@ import QRLogin from './components/QRLogin';
 import ChatList from './components/ChatList';
 import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
+import SendApiPopup from './components/SendApiPopup';
 
 const socket = io();
 
@@ -14,6 +15,7 @@ export default function App() {
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [showApiPopup, setShowApiPopup] = useState(false);
   const selectedChatIdRef = useRef(selectedChatId);
 
   useEffect(() => {
@@ -186,9 +188,17 @@ export default function App() {
           chatName={selectedChat?.name}
           isGroup={selectedChat?.isGroup}
           loading={loadingMessages}
+          onShowApi={() => setShowApiPopup(true)}
         />
         <MessageInput onSend={handleSend} disabled={!selectedChatId} />
       </div>
+      {showApiPopup && selectedChatId && (
+        <SendApiPopup
+          chatId={selectedChatId}
+          chatName={selectedChat?.name}
+          onClose={() => setShowApiPopup(false)}
+        />
+      )}
     </div>
   );
 }
