@@ -39,9 +39,18 @@ client.on('ready', () => {
   if (io) io.emit('wa-ready');
 });
 
-client.on('message', (msg) => {
+client.on('message', async (msg) => {
   if (io) {
     const id = msg.id._serialized || msg.id.$1 || msg.id.toString();
+    let authorName;
+    if (msg.author) {
+      try {
+        const contact = await msg.getContact();
+        authorName = contact.name || contact.pushname || contact.number || msg.author.split('@')[0];
+      } catch {
+        authorName = msg.author.split('@')[0];
+      }
+    }
     io.emit('new-message', {
       id,
       body: msg.body,
@@ -51,6 +60,7 @@ client.on('message', (msg) => {
       timestamp: msg.timestamp,
       fromMe: msg.fromMe,
       author: msg.author,
+      authorName,
       type: msg.type,
     });
   }

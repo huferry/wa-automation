@@ -7,37 +7,20 @@ function sid(obj) {
   return obj._serialized || obj['$1'] || obj.toString();
 }
 
-// Cache contacts for resolving names
-let contactsCache = {};
+// Cache for contact name resolution (supports both @c.us and @lid keys)
+const nameCache = {};
 
-async function refreshContacts() {
-  try {
-    const contacts = await client.getContacts();
-    const map = {};
-    for (const c of contacts) {
-      const id = sid(c.id);
-      if (id) {
-        map[id] = {
-          name: c.name || c.pushname || c.number || id.split('@')[0],
-          shortName: c.shortName || c.pushname || c.name || c.number || id.split('@')[0],
-        };
-      }
-    }
-    contactsCache = map;
-  } catch (e) {
-    console.error('Failed to refresh contacts:', e);
-  }
-}
-
-// Refresh contacts when client is ready and periodically
-client.on('ready', () => setTimeout(refreshContacts, 2000));
-
-function resolveContactName(authorId) {
+async function resolveContactName(authorId) {
   if (!authorId) return undefined;
-  const contact = contactsCache[authorId];
-  if (contact) return contact.shortName;
-  // Fallback: strip @c.us / @lid
-  return authorId.split('@')[0];
+  if (nameCache[authorId]) return nameCache[authorId];
+  try {
+    const contact = await client.getContactById(authorId);
+    const name = contact.name || contact.pushname || contact.number || authorId.split('@')[0];
+    nameCache[authorId] = name;
+    return name;
+  } catch {
+    return authorId.split('@')[0];
+  }
 }
 
 const router = express.Router();
@@ -91,7 +74,7 @@ router.get('/chats/:chatId/messages', async (req, res) => {
   try {
     const chat = await client.getChatById(req.params.chatId);
     const messages = await chat.fetchMessages({ limit: 50 });
-    const mapped = messages.map((msg) => ({
+    const mapped = await Promise.all(messages.map(async (msg) => ({
       id: sid(msg.id),
       body: msg.body,
       from: msg.from,
@@ -99,9 +82,9 @@ router.get('/chats/:chatId/messages', async (req, res) => {
       timestamp: msg.timestamp,
       fromMe: msg.fromMe,
       author: msg.author,
-      authorName: resolveContactName(msg.author),
+      authorName: msg.fromMe ? undefined : await resolveContactName(msg.author),
       type: msg.type,
-    }));
+    })));
     res.json(mapped);
   } catch (err) {
     console.error('Error fetching messages:', err);
@@ -130,13 +113,13 @@ router.post('/chats/:chatId/messages', async (req, res) => {
 
 router.get('/contacts', async (req, res) => {
   try {
-    if (Object.keys(contactsCache).length === 0) {
-      await refreshContacts();
-    }
-    const list = Object.entries(contactsCache).map(([id, c]) => ({
-      id,
-      name: c.name,
-    }));
+    const contacts = await client.getContacts();
+    const list = contacts
+      .filter((c) => c.isUser && !c.isMe)
+      .map((c) => ({
+        id: sid(c.id),
+        name: c.name || c.pushname || c.number,
+      }));
     res.json(list);
   } catch (err) {
     console.error('Error fetching contacts:', err);
