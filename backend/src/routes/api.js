@@ -1,5 +1,6 @@
 const express = require('express');
 const { client, state } = require('../whatsapp');
+const automations = require('../automations');
 
 function sid(obj) {
   if (!obj) return undefined;
@@ -26,7 +27,8 @@ async function resolveContactName(authorId) {
 const router = express.Router();
 
 router.get('/status', (req, res) => {
-  res.json({ qr: state.qr, ready: state.ready });
+  const meId = client.info?.wid ? sid(client.info.wid) : null;
+  res.json({ qr: state.qr, ready: state.ready, meId });
 });
 
 router.get('/chats', async (req, res) => {
@@ -74,17 +76,35 @@ router.get('/chats/:chatId/messages', async (req, res) => {
   try {
     const chat = await client.getChatById(req.params.chatId);
     const messages = await chat.fetchMessages({ limit: 50 });
-    const mapped = await Promise.all(messages.map(async (msg) => ({
-      id: sid(msg.id),
-      body: msg.body,
-      from: msg.from,
-      to: msg.to,
-      timestamp: msg.timestamp,
-      fromMe: msg.fromMe,
-      author: msg.author,
-      authorName: msg.fromMe ? undefined : await resolveContactName(msg.author),
-      type: msg.type,
-    })));
+    const mapped = await Promise.all(messages.map(async (msg) => {
+      let reactions = [];
+      try {
+        const rawReactions = await msg.getReactions();
+        if (rawReactions) {
+          for (const group of rawReactions) {
+            for (const r of group.senders) {
+              reactions.push({
+                reaction: group.id,
+                senderId: r.senderId,
+                timestamp: r.timestamp,
+              });
+            }
+          }
+        }
+      } catch (_) {}
+      return {
+        id: sid(msg.id),
+        body: msg.body,
+        from: msg.from,
+        to: msg.to,
+        timestamp: msg.timestamp,
+        fromMe: msg.fromMe,
+        author: msg.author,
+        authorName: msg.fromMe ? undefined : await resolveContactName(msg.author),
+        type: msg.type,
+        reactions,
+      };
+    }));
     res.json(mapped);
   } catch (err) {
     console.error('Error fetching messages:', err);
@@ -108,6 +128,67 @@ router.post('/chats/:chatId/messages', async (req, res) => {
   } catch (err) {
     console.error('Error sending message:', err);
     res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// Automations CRUD
+router.get('/chats/:chatId/automations', (req, res) => {
+  res.json(automations.getAutomations(req.params.chatId));
+});
+
+router.post('/chats/:chatId/automations', (req, res) => {
+  const { name, member, automation } = req.body;
+  if (!name || !automation) {
+    return res.status(400).json({ error: 'Missing name or automation type' });
+  }
+  const rule = automations.addAutomation(req.params.chatId, {
+    name,
+    member: member || 'all',
+    automation,
+  });
+  res.json(rule);
+});
+
+router.put('/chats/:chatId/automations/:ruleId', (req, res) => {
+  const { name, member, automation } = req.body;
+  const updated = automations.updateAutomation(req.params.chatId, req.params.ruleId, {
+    name,
+    member,
+    automation,
+  });
+  if (!updated) return res.status(404).json({ error: 'Automation not found' });
+  res.json(updated);
+});
+
+router.delete('/chats/:chatId/automations/:ruleId', (req, res) => {
+  const deleted = automations.deleteAutomation(req.params.chatId, req.params.ruleId);
+  if (!deleted) return res.status(404).json({ error: 'Automation not found' });
+  res.json({ status: 'deleted' });
+});
+
+// Group participants
+router.get('/chats/:chatId/participants', async (req, res) => {
+  try {
+    const chat = await client.getChatById(req.params.chatId);
+    if (!chat.isGroup) {
+      return res.json([]);
+    }
+    const participants = chat.participants || [];
+    const mapped = await Promise.all(
+      participants.map(async (p) => {
+        const id = sid(p.id);
+        let name = id.split('@')[0];
+        try {
+          const contact = await client.getContactById(id);
+          name = contact.name || contact.pushname || contact.number || name;
+        } catch {}
+        return { id, name };
+      })
+    );
+    res.json(mapped);
+  } catch (err) {
+    console.error('Error fetching participants:', err);
+    res.status(500).json({ error: 'Failed to fetch participants' });
   }
 });
 

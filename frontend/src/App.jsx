@@ -5,6 +5,7 @@ import ChatList from './components/ChatList';
 import ChatWindow from './components/ChatWindow';
 import MessageInput from './components/MessageInput';
 import SendApiPopup from './components/SendApiPopup';
+import AutomationPopup from './components/AutomationPopup';
 
 const socket = io();
 
@@ -16,6 +17,8 @@ export default function App() {
   const [messages, setMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [showApiPopup, setShowApiPopup] = useState(false);
+  const [showAutomationPopup, setShowAutomationPopup] = useState(false);
+  const [meId, setMeId] = useState(null);
   const selectedChatIdRef = useRef(selectedChatId);
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export default function App() {
     fetch('/api/status')
       .then((res) => res.json())
       .then((data) => {
+        if (data.meId) setMeId(data.meId);
         if (data.ready) {
           setStatus('ready');
           fetchChats();
@@ -61,6 +65,23 @@ export default function App() {
       setChats([]);
       setMessages([]);
       setSelectedChatId(null);
+    });
+
+    socket.on('message-reaction', (data) => {
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (m.id !== data.msgId) return m;
+          const reactions = [...(m.reactions || [])];
+          // Remove previous reaction from same sender
+          const existingIdx = reactions.findIndex((r) => r.senderId === data.senderId);
+          if (existingIdx !== -1) reactions.splice(existingIdx, 1);
+          // Add new reaction (empty string means removed)
+          if (data.reaction) {
+            reactions.push({ reaction: data.reaction, senderId: data.senderId, timestamp: data.timestamp });
+          }
+          return { ...m, reactions };
+        })
+      );
     });
 
     socket.on('new-message', (msg) => {
@@ -107,6 +128,7 @@ export default function App() {
       socket.off('wa-ready');
       socket.off('wa-disconnected');
       socket.off('new-message');
+      socket.off('message-reaction');
     };
   }, [fetchChats]);
 
@@ -188,7 +210,9 @@ export default function App() {
           chatName={selectedChat?.name}
           isGroup={selectedChat?.isGroup}
           loading={loadingMessages}
+          meId={meId}
           onShowApi={() => setShowApiPopup(true)}
+          onShowAutomation={() => setShowAutomationPopup(true)}
         />
         <MessageInput onSend={handleSend} disabled={!selectedChatId} />
       </div>
@@ -197,6 +221,14 @@ export default function App() {
           chatId={selectedChatId}
           chatName={selectedChat?.name}
           onClose={() => setShowApiPopup(false)}
+        />
+      )}
+      {showAutomationPopup && selectedChatId && (
+        <AutomationPopup
+          chatId={selectedChatId}
+          chatName={selectedChat?.name}
+          isGroup={selectedChat?.isGroup}
+          onClose={() => setShowAutomationPopup(false)}
         />
       )}
     </div>

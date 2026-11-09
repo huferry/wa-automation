@@ -302,6 +302,33 @@ body {
   margin-top: 2px;
 }
 
+.message-reactions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.reaction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #2a3942;
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.reaction-count {
+  font-size: 11px;
+  color: #8696a0;
+}
+
+.reaction-auto {
+  border: 1.5px solid #9b59b6;
+}
+
 /* Message input */
 .message-input {
   display: flex;
@@ -443,4 +470,195 @@ body {
 
 .popup-close-btn:hover {
   background: #2a3942;
+}
+
+/* Header icons */
+.header-icons {
+  display: flex;
+  gap: 4px;
+}
+
+/* Automation Popup */
+.automation-popup {
+  background: #202c33;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 640px;
+  width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.automation-popup h3 {
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.automation-columns {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 300px;
+  margin-bottom: 16px;
+}
+
+.automation-names {
+  width: 180px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  background: #111b21;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.automation-names-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #2a3942;
+  font-size: 13px;
+  color: #8696a0;
+}
+
+.automation-add-btn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #00a884;
+  color: #111b21;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.automation-add-btn:hover {
+  background: #06cf9c;
+}
+
+.automation-names-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.automation-name-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 1px solid #2a3942;
+}
+
+.automation-name-item:hover {
+  background: #202c33;
+}
+
+.automation-name-item.active {
+  background: #2a3942;
+}
+
+.automation-detail {
+  flex: 1;
+  background: #111b21;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #8696a0;
+}
+
+.automation-detail > span {
+  margin-bottom: 12px;
+}
+
+.automation-detail-view,
+.automation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.automation-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.automation-field label {
+  font-size: 12px;
+  color: #8696a0;
+}
+
+.automation-field span {
+  font-size: 14px;
+  color: #e9edef;
+}
+
+.automation-field input,
+.automation-field select {
+  padding: 8px 10px;
+  border: 1px solid #2a3942;
+  border-radius: 6px;
+  background: #202c33;
+  color: #e9edef;
+  font-size: 14px;
+  outline: none;
+}
+
+.automation-field input:focus,
+.automation-field select:focus {
+  border-color: #00a884;
+}
+
+.automation-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.automation-edit-btn,
+.automation-save-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #00a884;
+  color: #111b21;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.automation-edit-btn:hover,
+.automation-save-btn:hover {
+  background: #06cf9c;
+}
+
+.automation-delete-btn,
+.automation-cancel-btn {
+  padding: 8px 16px;
+  border: 1px solid #2a3942;
+  border-radius: 6px;
+  background: transparent;
+  color: #e9edef;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.automation-delete-btn:hover {
+  background: #3b1c1c;
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.automation-cancel-btn:hover {
+  background: #2a3942;
+}
+
+.automation-empty {
+  padding: 16px;
+  color: #8696a0;
+  font-size: 13px;
+  text-align: center;
 }

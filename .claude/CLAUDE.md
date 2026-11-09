@@ -34,3 +34,24 @@ Create a POST endpoint to send a direct message or a group message. Expose the U
 Reuses the existing `POST /api/chats/:chatId/messages` endpoint.
 
 The content of the message should be in the body as `{"message": "text"}`.
+
+## Phase 4 - Automation
+
+1. Next to the 'Send' icon (the one which will open a popup), create the 'Automation' icon. When clicked, the Automation popup will appear.
+2. The Automation dialog is divided into two columns: 
+    - automation name, simply labeld 'Name'
+    - automation detail, simply labeld 'Detail'
+    - The 'name' column will show the list of automations
+    - The 'detail' column will show the detail of the chose automation.
+   On the top right corner add the 'Add' button.
+3. When the add button is clicked, it will let the user fill a new automation. The detail column will show a form with:
+    - 'Name': the name of this automation
+    - (only for Group): 'Member': let the user choose 'all' or one of the group member. This should be a combo-box.
+    - 'Automation': this is a combo-box, for now only one item 'Thumbs Up'.
+    - Then the user can either click on 'Cancel' or 'Add' button.
+    - When viewing an automation, there should be an 'Edit' an a 'Delete' button in the 'detail' column.
+
+The automation should only be apply to the individual direct/group. 
+The 'Thumbs Up' automation will give thumbs-up reaction on each message, from the chosen member. When the chosen member is 'all' then it will give reaction to all messages in the group or direct chat.
+
+Save the automation for now in a json file.

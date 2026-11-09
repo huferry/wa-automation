@@ -18,11 +18,13 @@ if (!fs.existsSync(utilsPath)) {
 
 let code = fs.readFileSync(utilsPath, 'utf8');
 
+let utilsAlreadyPatched = false;
 if (code.includes('WWebJS.__s')) {
-  console.log('patch: already applied, skipping');
-  process.exit(0);
+  console.log('patch: Utils.js already patched, skipping');
+  utilsAlreadyPatched = true;
 }
 
+if (!utilsAlreadyPatched) {
 // 1. Add serialization helper after "window.WWebJS = {};"
 const helper = `
 
@@ -85,3 +87,29 @@ code = code.replace(
 
 fs.writeFileSync(utilsPath, code);
 console.log(`patch: Applied ${count} fixes to whatsapp-web.js Utils.js`);
+}
+
+// 5. Patch Message.js — fix react() using _serialized
+const msgPath = path.join(
+  __dirname, '..', 'node_modules', 'whatsapp-web.js',
+  'src', 'structures', 'Message.js'
+);
+
+if (fs.existsSync(msgPath)) {
+  let msgCode = fs.readFileSync(msgPath, 'utf8');
+  let msgCount = 0;
+
+  // Fix react(): this.id._serialized -> fallback
+  if (msgCode.includes('this.id._serialized')) {
+    msgCode = msgCode.replace(
+      /this\.id\._serialized/g,
+      '(this.id._serialized || this.id.$1 || this.id.toString())'
+    );
+    msgCount++;
+  }
+
+  if (msgCount > 0) {
+    fs.writeFileSync(msgPath, msgCode);
+    console.log(`patch: Applied ${msgCount} fixes to Message.js`);
+  }
+}

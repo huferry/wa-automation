@@ -32,7 +32,7 @@ function messageBody(msg) {
   return msg.body;
 }
 
-export default function ChatWindow({ messages, chatName, isGroup, loading, onShowApi }) {
+export default function ChatWindow({ messages, chatName, isGroup, loading, meId, onShowApi, onShowAutomation }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -51,12 +51,20 @@ export default function ChatWindow({ messages, chatName, isGroup, loading, onSho
     <div className="chat-window">
       <div className="chat-window-header">
         <h3>{chatName}</h3>
-        <button className="api-icon-btn" onClick={onShowApi} title="Send API">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13" />
-            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-          </svg>
-        </button>
+        <div className="header-icons">
+          <button className="api-icon-btn" onClick={onShowApi} title="Send API">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" />
+            </svg>
+          </button>
+          <button className="api-icon-btn" onClick={onShowAutomation} title="Automations">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        </div>
       </div>
       <div className="chat-messages">
         {loading && <div className="spinner" />}
@@ -72,6 +80,22 @@ export default function ChatWindow({ messages, chatName, isGroup, loading, onSho
             )}
             <span className="message-body">{messageBody(msg)}</span>
             <span className="message-time">{formatTime(msg.timestamp)}</span>
+            {msg.reactions && msg.reactions.length > 0 && (
+              <div className="message-reactions">
+                {Object.entries(
+                  msg.reactions.reduce((acc, r) => {
+                    if (!acc[r.reaction]) acc[r.reaction] = { count: 0, fromMe: false };
+                    acc[r.reaction].count++;
+                    if (r.senderId === meId) acc[r.reaction].fromMe = true;
+                    return acc;
+                  }, {})
+                ).map(([emoji, { count, fromMe }]) => (
+                  <span key={emoji} className={`reaction-badge${fromMe ? ' reaction-auto' : ''}`}>
+                    {emoji}{count > 1 && <span className="reaction-count">{count}</span>}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         ))}
         <div ref={bottomRef} />

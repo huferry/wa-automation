@@ -1,5 +1,6 @@
 const { Client, LocalAuth, RemoteWebCache } = require('whatsapp-web.js');
 const QRCode = require('qrcode');
+const { getAutomations } = require('./automations');
 
 const state = {
   qr: null,
@@ -62,6 +63,38 @@ client.on('message', async (msg) => {
       author: msg.author,
       authorName,
       type: msg.type,
+    });
+  }
+
+  // Execute automations
+  if (!msg.fromMe) {
+    try {
+      const chatId = msg.from;
+      const rules = getAutomations(chatId);
+      console.log(`Automation check: chatId=${chatId}, rules=${rules.length}, author=${msg.author}`);
+      for (const rule of rules) {
+        const memberMatch = rule.member === 'all' || rule.member === msg.author;
+        console.log(`  Rule "${rule.name}": member=${rule.member}, match=${memberMatch}`);
+        if (memberMatch && rule.automation === 'thumbs-up') {
+          console.log('  -> Reacting with 👍');
+          await msg.react('👍');
+        }
+      }
+    } catch (e) {
+      console.error('Automation error:', e);
+    }
+  }
+});
+
+client.on('message_reaction', (reaction) => {
+  if (io) {
+    const msgId = reaction.msgId?._serialized || reaction.msgId?.['$1'] || (reaction.msgId && reaction.msgId.toString());
+    const senderId = reaction.senderId?._serialized || reaction.senderId?.['$1'] || reaction.senderId;
+    io.emit('message-reaction', {
+      msgId,
+      reaction: reaction.reaction,
+      senderId,
+      timestamp: reaction.timestamp,
     });
   }
 });
