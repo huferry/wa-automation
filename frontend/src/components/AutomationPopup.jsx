@@ -132,7 +132,11 @@ export default function AutomationPopup({ chatId, chatName, isGroup, onClose }) 
                 )}
                 <div className="automation-field">
                   <label>Automation</label>
-                  <span>{selected.automation === 'thumbs-up' ? 'Thumbs Up 👍' : selected.automation}</span>
+                  <span>{
+                    selected.automation === 'thumbs-up' ? 'Thumbs Up 👍' :
+                    selected.automation === 'auto-response' ? 'Auto Response 💬' :
+                    selected.automation
+                  }</span>
                 </div>
                 <div className="automation-actions">
                   <button className="automation-edit-btn" onClick={handleEdit}>Edit</button>
@@ -177,6 +181,7 @@ export default function AutomationPopup({ chatId, chatName, isGroup, onClose }) 
                     onChange={(e) => setForm({ ...form, automation: e.target.value })}
                   >
                     <option value="thumbs-up">Thumbs Up 👍</option>
+                    <option value="auto-response">Auto Response 💬</option>
                   </select>
                 </div>
                 <div className="automation-actions">

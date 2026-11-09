@@ -32,7 +32,7 @@ function messageBody(msg) {
   return msg.body;
 }
 
-export default function ChatWindow({ messages, chatName, isGroup, loading, meId, onShowApi, onShowAutomation }) {
+export default function ChatWindow({ messages, chatName, isGroup, loading, meId, onBack, onShowApi, onShowAutomation }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -50,7 +50,14 @@ export default function ChatWindow({ messages, chatName, isGroup, loading, meId,
   return (
     <div className="chat-window">
       <div className="chat-window-header">
-        <h3>{chatName}</h3>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <button className="chat-back-btn" onClick={onBack}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+          <h3>{chatName}</h3>
+        </div>
         <div className="header-icons">
           <button className="api-icon-btn" onClick={onShowApi} title="Send API">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

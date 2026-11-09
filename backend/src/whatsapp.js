@@ -1,6 +1,7 @@
 const { Client, LocalAuth, RemoteWebCache } = require('whatsapp-web.js');
 const QRCode = require('qrcode');
 const { getAutomations } = require('./automations');
+const { generateAutoResponse } = require('./claude');
 
 const state = {
   qr: null,
@@ -81,6 +82,35 @@ client.on('message', async (msg) => {
         if (memberMatch && rule.automation === 'thumbs-up') {
           console.log('  -> Reacting with 👍');
           await msg.react('👍');
+        }
+        if (memberMatch && rule.automation === 'auto-response' && msg.body) {
+          console.log(`  -> Auto response for: "${msg.body}"`);
+          try {
+            const chat = await msg.getChat();
+            const recent = await chat.fetchMessages({ limit: 10 });
+            const context = recent.slice(-10, -1).map((m) => ({
+              body: m.body,
+              fromMe: m.fromMe,
+              authorName: m.author?.split('@')[0],
+            }));
+            let authorName;
+            try {
+              const contact = await msg.getContact();
+              authorName = contact.name || contact.pushname || contact.number;
+            } catch {}
+            const result = await generateAutoResponse(msg.body, context, authorName);
+            if (result.type === 'reply') {
+              console.log('  -> Sending reply:', result.text);
+              await chat.sendMessage(result.text);
+            } else if (result.type === 'react') {
+              console.log('  -> Reacting with:', result.emoji);
+              try { await msg.react(result.emoji); } catch { console.log('  -> React failed, skipping'); }
+            } else {
+              console.log('  -> Skipping (no response needed)');
+            }
+          } catch (err) {
+            console.error('Auto-response error:', err);
+          }
         }
       }
     } catch (e) {

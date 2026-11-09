@@ -65,3 +65,28 @@ or group's initial.
 
 ### Add 2
 Sort direct message or group, in the list, always on top.
+
+## Phase 5 - New automation 'auto response'
+Introduce a new automation, next to 'Thumbs up'. It
+is called 'Auto Response'.
+This automation will reply on somebody's message for both direct and group chat. These are the rules:
+- Never share private information
+- Never decide anything in the reply
+- Always answer non-private questions, like:
+    - How's the weather
+    - How much is a kilo apple cost
+    - Tell me the recipe for apple pie
+- Never react on somebody's reaction, like:
+    - thanks
+    - no problem
+    - I'm good
+    - etc
+- Send response in the same language as the message you are responding to
+- Auto response message should have purple border
+- Auto response message should have the text 'AI' at the end, with super script characters.
+- [optional] If somebody says happy birthday to somebody else, also say somebody to the one having a birthday. Make your own sentence for this. Remember that you have said happy birthday, so that you do not do this twice.
+- [optional] Give reaction when somebody send a link. Try to guess which reaction icon to send.
+
+Use Claude to determine the response. Send to Claude
+some messages before the last message to give it 
+a context.

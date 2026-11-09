@@ -222,6 +222,7 @@ export default function App() {
           isGroup={selectedChat?.isGroup}
           loading={loadingMessages}
           meId={meId}
+          onBack={() => setSelectedChatId(null)}
           onShowApi={() => setShowApiPopup(true)}
           onShowAutomation={() => setShowAutomationPopup(true)}
         />
