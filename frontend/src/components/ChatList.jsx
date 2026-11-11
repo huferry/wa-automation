@@ -41,8 +41,8 @@ function lastMessageText(chat) {
   return prefix + messagePreview(chat.lastMessage);
 }
 
-export default function ChatList({ chats, selectedChatId, onSelectChat, automationChatIds }) {
-  const [filter, setFilter] = useState('direct');
+export default function ChatList({ chats, selectedChatId, onSelectChat, automationChatIds, loading }) {
+  const [filter, setFilter] = useState('group');
 
   const filtered = chats
     .filter((chat) => (filter === 'group' ? chat.isGroup : !chat.isGroup))
@@ -57,33 +57,35 @@ export default function ChatList({ chats, selectedChatId, onSelectChat, automati
       <div className="chat-list-header">
         <div className="chat-filter-toggle">
           <button
-            className={`toggle-btn ${filter === 'direct' ? 'active' : ''}`}
-            onClick={() => setFilter('direct')}
-          >
-            Direct
-          </button>
-          <button
             className={`toggle-btn ${filter === 'group' ? 'active' : ''}`}
             onClick={() => setFilter('group')}
           >
             Group
           </button>
+          <button
+            className={`toggle-btn ${filter === 'direct' ? 'active' : ''}`}
+            onClick={() => setFilter('direct')}
+          >
+            Direct
+          </button>
         </div>
       </div>
       <div className="chat-list-items">
+        {loading && (
+          <div className="chat-list-loading">
+            <div className="spinner" />
+            <span>Loading chats...</span>
+          </div>
+        )}
         {filtered.map((chat) => (
           <div
             key={chat.id}
             className={`chat-item ${chat.id === selectedChatId ? 'active' : ''}`}
             onClick={() => onSelectChat(chat.id)}
           >
-            {chat.profilePicUrl ? (
-              <img className={`chat-avatar-img${automationChatIds?.includes(chat.id) ? ' avatar-automated' : ''}`} src={chat.profilePicUrl} alt="" />
-            ) : (
-              <div className={`chat-avatar${automationChatIds?.includes(chat.id) ? ' avatar-automated' : ''}`}>
-                {chat.name?.charAt(0)?.toUpperCase() || '?'}
-              </div>
-            )}
+            <div className={`chat-avatar${automationChatIds?.includes(chat.id) ? ' avatar-automated' : ''}`}>
+              {chat.name?.charAt(0)?.toUpperCase() || '?'}
+            </div>
             <div className="chat-info">
               <div className="chat-info-top">
                 <span className="chat-name">{chat.name}</span>

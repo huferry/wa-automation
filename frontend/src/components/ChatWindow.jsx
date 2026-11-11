@@ -36,7 +36,7 @@ export default function ChatWindow({ messages, chatName, isGroup, loading, meId,
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: 'instant' });
   }, [messages]);
 
   if (!chatName) {
@@ -75,10 +75,10 @@ export default function ChatWindow({ messages, chatName, isGroup, loading, meId,
       </div>
       <div className="chat-messages">
         {loading && <div className="spinner" />}
-        {messages.filter((msg) => msg.type !== 'call_log').map((msg) => (
+        {messages.filter((msg) => !['call_log', 'e2e_notification', 'gp2', 'notification_template', 'message_history_notice'].includes(msg.type)).map((msg) => (
           <div
             key={msg.id}
-            className={`message ${msg.fromMe ? 'sent' : 'received'}`}
+            className={`message ${msg.fromMe ? 'sent' : 'received'}${msg.body?.endsWith(' \u1D2C\u1D35') ? ' ai-response' : ''}`}
           >
             {isGroup && !msg.fromMe && (
               <span className="message-author">

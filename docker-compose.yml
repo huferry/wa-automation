@@ -1,0 +1,16 @@
+services:
+  wa-automation:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - wa-auth:/app/.wwebjs_auth
+      - wa-data:/app/data
+    shm_size: 512m
+    restart: unless-stopped
+
+volumes:
+  wa-auth:
+  wa-data:

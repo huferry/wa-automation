@@ -78,3 +78,16 @@ wa-automation/
 - No new chat creation or contact search
 - No media sending
 - No message status indicators (read receipts)
+
+## Release Notes
+
+### v1.0.0 — 2026-11-11
+
+- WhatsApp Web clone with chat reading and replying (Phase 1)
+- Direct/Group chat toggle with filtered views (Phase 2)
+- Send API popup with POST endpoint for external messaging (Phase 3)
+- Automation system with thumbs-up reactions (Phase 4)
+- Purple border on automated chat avatars, sorted to top (Phase 4)
+- Auto-response automation powered by Claude AI with web search (Phase 5)
+- Docker support with multi-stage build for production deployment
+- Docker Compose configuration

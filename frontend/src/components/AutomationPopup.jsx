@@ -5,7 +5,7 @@ export default function AutomationPopup({ chatId, chatName, isGroup, onClose }) 
   const [participants, setParticipants] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [mode, setMode] = useState('view'); // view | add | edit
-  const [form, setForm] = useState({ name: '', member: 'all', automation: 'thumbs-up' });
+  const [form, setForm] = useState({ name: '', member: 'all', automation: 'thumbs-up', birthdayWish: false, linkReaction: false });
 
   useEffect(() => {
     fetchAutomations();
@@ -35,14 +35,14 @@ export default function AutomationPopup({ chatId, chatName, isGroup, onClose }) 
 
   function handleAdd() {
     setSelectedId(null);
-    setForm({ name: '', member: 'all', automation: 'thumbs-up' });
+    setForm({ name: '', member: 'all', automation: 'thumbs-up', birthdayWish: false, linkReaction: false });
     setMode('add');
   }
 
   function handleEdit() {
     const rule = automations.find((r) => r.id === selectedId);
     if (rule) {
-      setForm({ name: rule.name, member: rule.member, automation: rule.automation });
+      setForm({ name: rule.name, member: rule.member, automation: rule.automation, birthdayWish: rule.birthdayWish || false, linkReaction: rule.linkReaction || false });
       setMode('edit');
     }
   }
@@ -138,6 +138,13 @@ export default function AutomationPopup({ chatId, chatName, isGroup, onClose }) 
                     selected.automation
                   }</span>
                 </div>
+                {selected.automation === 'auto-response' && (
+                  <div className="automation-field">
+                    <label>Options</label>
+                    <span>{selected.birthdayWish ? '✓' : '✗'} Birthday wishes</span>
+                    <span>{selected.linkReaction ? '✓' : '✗'} Link reactions</span>
+                  </div>
+                )}
                 <div className="automation-actions">
                   <button className="automation-edit-btn" onClick={handleEdit}>Edit</button>
                   <button className="automation-delete-btn" onClick={handleDelete}>Delete</button>
@@ -184,6 +191,27 @@ export default function AutomationPopup({ chatId, chatName, isGroup, onClose }) 
                     <option value="auto-response">Auto Response 💬</option>
                   </select>
                 </div>
+                {form.automation === 'auto-response' && (
+                  <div className="automation-field">
+                    <label>Options</label>
+                    <label className="automation-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={form.birthdayWish}
+                        onChange={(e) => setForm({ ...form, birthdayWish: e.target.checked })}
+                      />
+                      Birthday wishes
+                    </label>
+                    <label className="automation-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={form.linkReaction}
+                        onChange={(e) => setForm({ ...form, linkReaction: e.target.checked })}
+                      />
+                      Link reactions
+                    </label>
+                  </div>
+                )}
                 <div className="automation-actions">
                   <button className="automation-cancel-btn" onClick={handleCancel}>Cancel</button>
                   <button className="automation-save-btn" onClick={handleSave}>

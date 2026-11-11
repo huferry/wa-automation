@@ -11,6 +11,10 @@ function sid(obj) {
 // Cache for contact name resolution (supports both @c.us and @lid keys)
 const nameCache = {};
 
+// Cache for message reactions: msgId -> { reactions, ts }
+const reactionsCache = {};
+const REACTIONS_TTL = 60_000; // 1 minute
+
 async function resolveContactName(authorId) {
   if (!authorId) return undefined;
   if (nameCache[authorId]) return nameCache[authorId];
@@ -34,36 +38,50 @@ router.get('/status', (req, res) => {
 router.get('/chats', async (req, res) => {
   try {
     const chats = await client.getChats();
-    const active = [];
-    for (const chat of chats) {
-      if (chat.archived) continue;
-      let lastMessage = null;
-      try {
-        if (chat.lastMessage) {
-          lastMessage = {
-            body: chat.lastMessage.body || '',
-            timestamp: chat.lastMessage.timestamp,
-            fromMe: chat.lastMessage.fromMe,
-            type: chat.lastMessage.type || 'chat',
-          };
+    const filtered = chats.filter((chat) => {
+      if (chat.archived) return false;
+      const id = sid(chat.id) || '';
+      if (id === 'status@broadcast' || id.endsWith('@broadcast')) return false;
+      return true;
+    });
+
+    const active = await Promise.all(
+      filtered.map(async (chat) => {
+        let lastMessage = null;
+        try {
+          if (chat.lastMessage) {
+            lastMessage = {
+              body: chat.lastMessage.body || '',
+              timestamp: chat.lastMessage.timestamp,
+              fromMe: chat.lastMessage.fromMe,
+              type: chat.lastMessage.type || 'chat',
+            };
+          }
+        } catch (_) {}
+
+        const chatId = sid(chat.id) || chat.id._serialized;
+        const isGroup = chatId.endsWith('@g.us');
+        let name = chat.name;
+        if (!name && isGroup) {
+          try {
+            const contact = await Promise.race([
+              client.getContactById(chatId),
+              new Promise((_, reject) => setTimeout(() => reject(), 1000)),
+            ]);
+            name = contact.name || contact.pushname || null;
+          } catch {}
         }
-      } catch (_) {}
+        return {
+          id: chatId,
+          name: name || (isGroup ? 'Unknown Group' : chatId.split('@')[0]),
+          isGroup,
+          unreadCount: chat.unreadCount,
+          lastMessage,
+          timestamp: chat.timestamp,
+        };
+      })
+    );
 
-      let profilePicUrl = null;
-      try {
-        profilePicUrl = await chat.getProfilePicUrl();
-      } catch (_) {}
-
-      active.push({
-        id: sid(chat.id) || chat.id._serialized,
-        name: chat.name,
-        isGroup: chat.isGroup,
-        unreadCount: chat.unreadCount,
-        lastMessage,
-        timestamp: chat.timestamp,
-        profilePicUrl,
-      });
-    }
     active.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
     res.json(active);
   } catch (err) {
@@ -76,31 +94,43 @@ router.get('/chats/:chatId/messages', async (req, res) => {
   try {
     const chat = await client.getChatById(req.params.chatId);
     const messages = await chat.fetchMessages({ limit: 50 });
+
+    // Resolve all contact names in parallel first
+    const authorIds = [...new Set(messages.filter((m) => !m.fromMe && m.author).map((m) => m.author))];
+    await Promise.all(authorIds.map((id) => resolveContactName(id)));
+
     const mapped = await Promise.all(messages.map(async (msg) => {
+      const msgId = sid(msg.id);
       let reactions = [];
       try {
-        const rawReactions = await msg.getReactions();
-        if (rawReactions) {
-          for (const group of rawReactions) {
-            for (const r of group.senders) {
-              reactions.push({
-                reaction: group.id,
-                senderId: r.senderId,
-                timestamp: r.timestamp,
-              });
+        const cached = reactionsCache[msgId];
+        if (cached && Date.now() - cached.ts < REACTIONS_TTL) {
+          reactions = cached.reactions;
+        } else {
+          const rawReactions = await msg.getReactions();
+          if (rawReactions) {
+            for (const group of rawReactions) {
+              for (const r of group.senders) {
+                reactions.push({
+                  reaction: group.id,
+                  senderId: r.senderId,
+                  timestamp: r.timestamp,
+                });
+              }
             }
           }
+          reactionsCache[msgId] = { reactions, ts: Date.now() };
         }
       } catch (_) {}
       return {
-        id: sid(msg.id),
+        id: msgId,
         body: msg.body,
         from: msg.from,
         to: msg.to,
         timestamp: msg.timestamp,
         fromMe: msg.fromMe,
         author: msg.author,
-        authorName: msg.fromMe ? undefined : await resolveContactName(msg.author),
+        authorName: msg.fromMe ? undefined : nameCache[msg.author],
         type: msg.type,
         reactions,
       };

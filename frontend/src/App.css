@@ -110,6 +110,15 @@ body {
   overflow-y: auto;
 }
 
+.chat-list-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 16px;
+  color: #8696a0;
+}
+
 .chat-item {
   display: flex;
   align-items: center;
@@ -282,6 +291,10 @@ body {
 .message.sent {
   align-self: flex-end;
   background: #005c4b;
+}
+
+.message.ai-response {
+  border: 1.5px solid #9b59b6;
 }
 
 .message.received {
@@ -659,6 +672,21 @@ body {
 
 .automation-cancel-btn:hover {
   background: #2a3942;
+}
+
+.automation-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #e9edef;
+  cursor: pointer;
+}
+
+.automation-checkbox input[type="checkbox"] {
+  accent-color: #00a884;
+  width: 16px;
+  height: 16px;
 }
 
 .automation-empty {

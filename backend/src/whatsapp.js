@@ -12,6 +12,7 @@ let io = null;
 
 const client = new Client({
   authStrategy: new LocalAuth(),
+  deviceName: 'WA Automation',
   webVersionCache: {
     type: 'none',
   },
@@ -98,7 +99,10 @@ client.on('message', async (msg) => {
               const contact = await msg.getContact();
               authorName = contact.name || contact.pushname || contact.number;
             } catch {}
-            const result = await generateAutoResponse(msg.body, context, authorName);
+            const result = await generateAutoResponse(msg.body, context, authorName, {
+              birthdayWish: rule.birthdayWish || false,
+              linkReaction: rule.linkReaction || false,
+            });
             if (result.type === 'reply') {
               console.log('  -> Sending reply:', result.text);
               await chat.sendMessage(result.text);
@@ -165,6 +169,8 @@ function setIO(socketIO) {
   io = socketIO;
 }
 
-client.initialize();
+client.initialize().catch((err) => {
+  console.error('WhatsApp client failed to initialize:', err);
+});
 
 module.exports = { client, state, setIO };

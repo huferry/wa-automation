@@ -90,3 +90,8 @@ This automation will reply on somebody's message for both direct and group chat.
 Use Claude to determine the response. Send to Claude
 some messages before the last message to give it 
 a context.
+For [optional] responses, add check-boxes in the
+Automation form. It should behave according to
+the user settings. These settings should only appear
+for this kind of automation, and should be saved per
+chat.
